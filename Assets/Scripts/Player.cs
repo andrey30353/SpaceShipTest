@@ -8,14 +8,14 @@ public class Boundary
 }
 
 [RequireComponent(typeof(Rigidbody2D))]
+[RequireComponent(typeof(Destructible))]
 public class Player : MonoBehaviour
-{
-    [SerializeField] private int _hp;
+{    
     [SerializeField] private float _speed;
     [SerializeField] private Boundary _boundary;
 
     [Space]
-    [SerializeField] private Bullet _bulletPrefab;
+    [SerializeField] private GameObject _bulletPrefab;
     [SerializeField] private Transform _bulletPoint;
     
     [Range(0.1f, 1)]
@@ -26,11 +26,28 @@ public class Player : MonoBehaviour
     private Vector2 _movement;
     private float _shotTimeoutProcess;
 
-    private Rigidbody2D rb;
+    private Rigidbody2D _rb;
+    private Destructible _destructible;
 
-    private void Start()
+    private void Awake()
     {
-        rb = GetComponent<Rigidbody2D>();        
+        _rb = GetComponent<Rigidbody2D>();
+        _destructible = GetComponent<Destructible>();
+    }
+
+    private void OnEnable()
+    {
+        _destructible.OnChangeHpEvent += ChangeHp;
+    }    
+
+    private void OnDisable()
+    {
+        _destructible.OnChangeHpEvent -= ChangeHp;
+    }
+
+    private void ChangeHp(int currectHp)
+    {
+        OnChangeHpEvent?.Invoke(currectHp);
     }
 
     private void Update()
@@ -51,18 +68,11 @@ public class Player : MonoBehaviour
 
     private void FixedUpdate()
     {     
-        rb.velocity = _movement * _speed;
+        _rb.velocity = _movement * _speed;
 
-        var newX = Mathf.Clamp(rb.position.x, _boundary.xMin, _boundary.xMax);
-        var newY = Mathf.Clamp(rb.position.y, _boundary.yMin, _boundary.yMax);
-        rb.position = new Vector2(newX, newY);
-    }
-
-    public void TakeDamage(int damage)
-    {
-        _hp -= damage;
-
-        OnChangeHpEvent?.Invoke(_hp);        
+        var newX = Mathf.Clamp(_rb.position.x, _boundary.xMin, _boundary.xMax);
+        var newY = Mathf.Clamp(_rb.position.y, _boundary.yMin, _boundary.yMax);
+        _rb.position = new Vector2(newX, newY);
     }
 
     public void Shot()
@@ -70,9 +80,7 @@ public class Player : MonoBehaviour
         var bullet = Instantiate(_bulletPrefab);
         bullet.transform.position = _bulletPoint.position;
 
-        _shotTimeoutProcess = _shotTimeout;
-
-        OnChangeHpEvent?.Invoke(_hp);
+        _shotTimeoutProcess = _shotTimeout;       
     }
 
     private void OnDrawGizmosSelected ()

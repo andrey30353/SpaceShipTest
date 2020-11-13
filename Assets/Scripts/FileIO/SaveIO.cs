@@ -13,16 +13,14 @@ public static class SaveIO
 	public static void SaveGameProgress(GameProgressSaveData progress)
 	{
 		var filePath = Path.Combine(baseSavePath, "progress.dat");
-		Debug.Log($"filePath = {filePath}");
-
+		
 		FileReadWrite.WriteToBinaryFile(filePath, progress);
 	}
 
 	public static GameProgressSaveData LoadGameProgress()
 	{
 		var filePath = Path.Combine(baseSavePath, "progress.dat");
-		Debug.Log($"filePath = {filePath}");		
-
+		
 		if (File.Exists(filePath))
 		{
 			return FileReadWrite.ReadFromBinaryFile<GameProgressSaveData>(filePath);

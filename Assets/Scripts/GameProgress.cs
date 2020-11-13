@@ -17,17 +17,14 @@ public static class GameProgress
     private static bool _inited;          
 
     public static void Init(IEnumerable<LevelDataSettings> levelSettingsList)
-    {
-        Debug.Log("Init");
-
+    {       
         if (_inited)
             return;
 
         // load
         var gameProgress = SaveIO.LoadGameProgress();
         if (gameProgress != null)
-        {
-            // Debug.Log("load gameProgress");
+        {          
             Levels = gameProgress.Levels;
         }
         else

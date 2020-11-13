@@ -1,10 +1,10 @@
 ﻿using UnityEngine;
 
-public class AsteroidSpawner : MonoBehaviour
+public class ObjectSpawner : MonoBehaviour
 {
     [SerializeField] private Game _game;
 
-    [SerializeField] private Asteroid _prefab;
+    [SerializeField] private GameObject _prefab;
 
     [SerializeField] private float _minX;
     [SerializeField] private float _maxX;

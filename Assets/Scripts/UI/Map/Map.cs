@@ -9,7 +9,7 @@ public class Map : MonoBehaviour
     private void Start()
     {
         _levelButtons = GetComponentsInChildren<LevelButton>();
-        Debug.Log(_levelButtons.Length);
+        
         GameProgress.Init(_levelButtons.Select(t=>t.LevelSettings));
 
         UpdateUI();
