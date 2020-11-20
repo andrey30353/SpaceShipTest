@@ -7,7 +7,7 @@ public class LivePanel : MonoBehaviour
 {    
     [SerializeField] private Image[] _hearts;
       
-    private void Start()
+    private void Awake()
     {
         _hearts = GetComponentsInChildren<Image>();
     }   

@@ -2,6 +2,7 @@
 using UnityEngine;
 using UnityEngine.Assertions;
 using UnityEngine.SceneManagement;
+using UniRx;
 
 public class Game : MonoBehaviour
 {
@@ -10,11 +11,11 @@ public class Game : MonoBehaviour
     [SerializeField] private int _flyTime;
 
     public event Action<LevelData> OnLoadLevelEvent;
-
-    public event Action<int> OnPlayerChangeHpEvent;
-    public event Action<float> OnFlyProgressChangeEvent;
-    public event Action OnLoseEvent;
-    public event Action OnWinEvent;
+       
+    public IReactiveProperty<int> PlayerHp => _player.CurrentHp;
+    public IReactiveProperty<float> FlyProgress { get; private set; }
+    public IReadOnlyReactiveProperty<bool> Lose => PlayerHp.Select(t => t <= 0).ToReactiveProperty();
+    public IReadOnlyReactiveProperty<bool> Win => FlyProgress.Select(t => t >= 1).ToReactiveProperty();
 
     private float _flyProgress;
 
@@ -22,57 +23,28 @@ public class Game : MonoBehaviour
     {
         Time.timeScale = 1;
 
+        FlyProgress = new ReactiveProperty<float>(0);
+        
         var levelData = GameProgress.SelectedLevel;
         Assert.IsNotNull(levelData);
 
         OnLoadLevelEvent?.Invoke(levelData);
-    }
 
-    private void OnEnable()
-    {
-        _player.OnChangeHpEvent += Player_OnChangeHpEvent;
+        Lose.Where(t => t == true).Subscribe(t => PauseGame());                
+        Win.Where(t => t == true).Subscribe(t => WinByFly());
+
+        Observable.EveryUpdate().Subscribe(t =>
+        {
+            _flyProgress += Time.deltaTime;           
+            FlyProgress.Value = _flyProgress / _flyTime;
+        });
     }   
 
-    private void OnDisable()
-    {
-        _player.OnChangeHpEvent -= Player_OnChangeHpEvent;
-    }
-
-    private void Update()
-    {
-        _flyProgress += Time.deltaTime;
-        OnFlyProgressChangeEvent?.Invoke(_flyProgress / _flyTime);
-
-        CheckWin();
-    }
-
-    private void CheckWin()
-    {
-        if (_flyProgress >= _flyTime)
-        {
-            OnWinEvent?.Invoke();
-            PauseGame();
-
-            GameProgress.SaveProgress();           
-        }
-    }   
-
-    private void Player_OnChangeHpEvent(int currentHp)
-    {
-        OnPlayerChangeHpEvent?.Invoke(currentHp);
-
-        if(currentHp <= 0)
-        {
-            Destroy(_player.gameObject);
-
-            GameOver();
-        }        
-    }
-
-    private void GameOver()
-    {
-        OnLoseEvent?.Invoke();
+    private void WinByFly()
+    {           
         PauseGame();
+
+        GameProgress.SaveProgress();        
     }
 
     private void PauseGame()
