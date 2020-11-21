@@ -24,7 +24,7 @@ public class Player : MonoBehaviour
 
     public event Action<int> OnChangeHpEvent;
 
-    public IReactiveProperty<int> CurrentHp => _destructible.CurrentHp;
+    public IReactiveProperty<int> CurrentHp => _destructible.Hp;
 
     private Vector2 _movement;
     private float _shotTimeoutProcess;
